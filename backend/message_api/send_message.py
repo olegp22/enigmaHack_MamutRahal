@@ -6,7 +6,7 @@ def send_email(message):
     sender = ""
     password = ""
 
-    server = smtplib.SMTP('smtp.gamil.com')  #
+    server = smtplib.SMTP('smtp.gmail.com')  #
     server.starttls()
 
     try:
