@@ -6,10 +6,13 @@ from typing import Annotated
 app = FastAPI()
 
 origins = [
-    'https://localhost:'
+    'http://localhost:3000',
+    'http://localhost',
+    'http://frontend',
+    'http://frontend:80',
 ]
 
-app.middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,

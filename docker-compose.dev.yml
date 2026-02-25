@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL база данных
+  db:
+    image: postgres:15-alpine
+    container_name: mamut_rahal_db_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mamut_db
+      POSTGRES_USER: mamut_user
+      POSTGRES_PASSWORD: mamut_password
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./backend/script.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mamut_user -d mamut_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API (FastAPI) - Development
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mamut_rahal_backend_dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://mamut_user:mamut_password@db:5432/mamut_db
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: uvicorn programm_API.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend (React + Vite) - Development mode
+  frontend:
+    image: node:20-alpine
+    container_name: mamut_rahal_frontend_dev
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
+volumes:
+  postgres_data_dev:
+    driver: local
+
+networks:
+  default:
+    name: mamut_rahal_network_dev
