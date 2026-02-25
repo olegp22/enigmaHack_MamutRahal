@@ -64,3 +64,4 @@ def read_emails(imap_server: str, email_address: str, password: str) -> Optional
                 imap.logout()
             except:
                 pass
+
